@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: health
+  namespace: test1
+spec:
+  selector:
+    matchLabels:
+      app: health
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: health
+    spec:
+      containers:
+      - name: healthcheck
+        image: dlvrchris/healthcheck
+        ports:
+        - containerPort: 5000
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: healthcheck-ingress
+  namespace: test1
+  annotations:
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/affinity-mode: "persistent"
+spec:
+  rules:
+  - host: test.chrisreed.xyz
+    http:
+      paths:
+      - path: /test
+        backend:
+          serviceName: health
+          servicePort: 5000
